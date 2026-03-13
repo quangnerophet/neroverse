@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[21062,["/neroverse/_next/static/chunks/2114c9cb057f9268.js","/neroverse/_next/static/chunks/dba8e3e05f7e7c16.js","/neroverse/_next/static/chunks/111e124f6252b6f1.js"],"default"]
+3:I[97367,["/neroverse/_next/static/chunks/ff1a16fafef87110.js","/neroverse/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"PVySAp0zPHuI8xDI7teP2","rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/neroverse/_next/static/chunks/dba8e3e05f7e7c16.js","async":true}],["$","script","script-1",{"src":"/neroverse/_next/static/chunks/111e124f6252b6f1.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null
