@@ -2,87 +2,190 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { initialTopics, initialPosts, Topic, Post } from "./mockData";
+import { db } from "./firebase";
+import { 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  doc, 
+  query, 
+  orderBy,
+  setDoc,
+  getDoc,
+  increment,
+} from "firebase/firestore";
+
+export type SocialLink = {
+  label: string;
+  url: string;
+};
+
+export type SiteSettings = {
+  footerLinks: SocialLink[];
+  footerNote?: string;
+};
 
 type StoreState = {
   topics: Topic[];
   posts: Post[];
-  viewMode: "masonry" | "list";
-  setViewMode: (mode: "masonry" | "list") => void;
-  addTopic: (name: string, parentId?: string) => void;
-  addPost: (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string) => void;
-  updatePost: (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string) => void;
+  siteSettings: SiteSettings;
+  viewMode: "cards" | "list" | "masonry";
+  sortOrder: "newest" | "oldest" | "mostliked";
+  setViewMode: (mode: "cards" | "list" | "masonry") => void;
+  setSortOrder: (order: "newest" | "oldest" | "mostliked") => void;
+  addTopic: (name: string, parentId?: string) => Promise<void>;
+  updateTopic: (id: string, name: string, parentId?: string) => Promise<void>;
+  deleteTopic: (id: string) => Promise<void>;
+  addPost: (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free' | 'premium' | 'vip') => Promise<void>;
+  updatePost: (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free' | 'premium' | 'vip') => Promise<void>;
+  likePost: (id: string) => Promise<void>;
+  updateSiteSettings: (settings: SiteSettings) => Promise<void>;
 };
 
 const StoreContext = createContext<StoreState | undefined>(undefined);
 
+const DEFAULT_SETTINGS: SiteSettings = {
+  footerLinks: [],
+  footerNote: "",
+};
+
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [topics, setTopics] = useState<Topic[]>(initialTopics);
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [viewMode, setViewMode] = useState<"masonry" | "list">("masonry");
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [viewMode, setViewMode] = useState<"cards" | "list" | "masonry">("cards");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "mostliked">("newest");
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load from localStorage on mount
+  // Sync Topics from Firestore
   useEffect(() => {
-    const savedTopics = localStorage.getItem("nero_topics");
-    const savedPosts = localStorage.getItem("nero_posts");
-    const savedViewMode = localStorage.getItem("nero_view_mode");
-    
-    if (savedTopics) setTopics(JSON.parse(savedTopics));
-    if (savedPosts) setPosts(JSON.parse(savedPosts));
-    if (savedViewMode === "masonry" || savedViewMode === "list") setViewMode(savedViewMode);
-    
-    setIsHydrated(true);
+    const q = query(collection(db, "topics"), orderBy("name"));
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      if (snapshot.empty && !isHydrated) {
+        console.log("Migrating initial topics to Firestore...");
+        for (const topic of initialTopics) {
+          await setDoc(doc(db, "topics", topic.id), topic);
+        }
+      } else {
+        const topicsData = snapshot.docs.map(d => ({
+          ...d.data(),
+          id: d.id
+        })) as Topic[];
+        setTopics(topicsData);
+      }
+    });
+    return () => unsubscribe();
+  }, [isHydrated]);
+
+  // Sync Posts from Firestore
+  useEffect(() => {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      if (snapshot.empty && !isHydrated) {
+        console.log("Migrating initial posts to Firestore...");
+        for (const post of initialPosts) {
+          await setDoc(doc(db, "posts", post.id), post);
+        }
+      } else {
+        const postsData = snapshot.docs.map(d => ({
+          ...d.data(),
+          id: d.id
+        })) as Post[];
+        setPosts(postsData);
+      }
+      setIsHydrated(true);
+    });
+    return () => unsubscribe();
+  }, [isHydrated]);
+
+  // Sync Site Settings from Firestore
+  useEffect(() => {
+    const settingsRef = doc(db, "settings", "site");
+    const unsubscribe = onSnapshot(settingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setSiteSettings(snapshot.data() as SiteSettings);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Save to localStorage whenever state changes
+  // UI settings persistence
   useEffect(() => {
-    if (isHydrated) {
-      localStorage.setItem("nero_topics", JSON.stringify(topics));
-      localStorage.setItem("nero_posts", JSON.stringify(posts));
-      localStorage.setItem("nero_view_mode", viewMode);
-    }
-  }, [topics, posts, viewMode, isHydrated]);
+    const savedViewMode = localStorage.getItem("nero_view_mode");
+    if (savedViewMode === "masonry" || savedViewMode === "list") setViewMode(savedViewMode);
+    const savedSort = localStorage.getItem("nero_sort_order");
+    if (savedSort === "newest" || savedSort === "oldest" || savedSort === "mostliked") setSortOrder(savedSort);
+  }, []);
 
-  const addTopic = (name: string, parentId?: string) => {
-    const newTopic: Topic = {
-      id: Date.now().toString(),
+  useEffect(() => { localStorage.setItem("nero_view_mode", viewMode); }, [viewMode]);
+  useEffect(() => { localStorage.setItem("nero_sort_order", sortOrder); }, [sortOrder]);
+
+  const addTopic = async (name: string, parentId?: string) => {
+    const newTopic = {
       name,
       ...(parentId ? { parentId } : {}),
     };
-    setTopics((prev) => [...prev, newTopic]);
+    await addDoc(collection(db, "topics"), newTopic);
   };
 
-  const addPost = (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string) => {
-    const newPost: Post = {
-      id: Date.now().toString(),
+  const updateTopic = async (id: string, name: string, parentId?: string) => {
+    const topicRef = doc(db, "topics", id);
+    await updateDoc(topicRef, {
+      name,
+      ...(parentId ? { parentId } : { parentId: null }),
+    });
+  };
+
+  const deleteTopic = async (id: string) => {
+    await deleteDoc(doc(db, "topics", id));
+  };
+
+  const addPost = async (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free') => {
+    const newPost = {
       topicId,
-      title,
+      title: title || "",
       excerpt,
-      ...(fullContent ? { fullContent } : {}),
-      ...(tags && tags.length > 0 ? { tags } : {}),
+      fullContent: fullContent || "",
+      tags: tags && tags.length > 0 ? tags : [],
       createdAt: createdAt || new Date().toISOString(),
+      likes: Math.floor(Math.random() * 51) + 50,
+      tier,
     };
-    setPosts((prev) => [newPost, ...prev]);
+    await addDoc(collection(db, "posts"), newPost);
   };
 
-  const updatePost = (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string) => {
-    setPosts((prev) => prev.map(post => 
-      post.id === id 
-        ? { 
-            ...post, 
-            topicId, 
-            title,
-            excerpt, 
-            fullContent: fullContent || undefined, 
-            tags: tags && tags.length > 0 ? tags : undefined,
-            createdAt: createdAt || post.createdAt
-          } 
-        : post
-    ));
+  const updatePost = async (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free') => {
+    const postRef = doc(db, "posts", id);
+    await updateDoc(postRef, {
+      topicId,
+      title: title || "",
+      excerpt,
+      fullContent: fullContent || "",
+      tags: tags && tags.length > 0 ? tags : [],
+      createdAt: createdAt || new Date().toISOString(),
+      tier,
+    });
+  };
+
+  const likePost = async (id: string) => {
+    const postRef = doc(db, "posts", id);
+    await updateDoc(postRef, { likes: increment(1) });
+  };
+
+  const updateSiteSettings = async (settings: SiteSettings) => {
+    const settingsRef = doc(db, "settings", "site");
+    await setDoc(settingsRef, settings, { merge: true });
   };
 
   return (
-    <StoreContext.Provider value={{ topics, posts, viewMode, setViewMode, addTopic, addPost, updatePost }}>
+    <StoreContext.Provider value={{ 
+      topics, posts, siteSettings, viewMode, sortOrder, setViewMode, setSortOrder,
+      addTopic, updateTopic, deleteTopic, 
+      addPost, updatePost, likePost,
+      updateSiteSettings 
+    }}>
       {children}
     </StoreContext.Provider>
   );

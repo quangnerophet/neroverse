@@ -12,6 +12,8 @@ export type Post = {
   fullContent?: string;
   tags?: string[];
   createdAt: string;
+  likes?: number;
+  tier?: 'free' | 'premium' | 'vip'; // content gating
 };
 
 export const initialTopics: Topic[] = [

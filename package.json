@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "next build && npx gh-pages -d out -b gh-pages"
+    "deploy": "next build && npx gh-pages -d out -b gh-pages --dotfiles"
   },
   "dependencies": {
+    "firebase": "^12.10.0",
     "next": "15.1.6",
     "next-themes": "^0.4.6",
     "react": "19.2.3",

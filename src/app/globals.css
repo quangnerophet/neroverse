@@ -22,27 +22,61 @@
   }
 }
 
-/* Base masonry support for varying browsers */
+/* Grid-based cards: 2-col CSS grid, left→right reading order */
 .masonry-grid {
-  column-count: 1;
-  column-gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto;
+  gap: 1.5rem;
+  align-items: start;
+  justify-items: stretch;
 }
 
 @media (min-width: 768px) {
   .masonry-grid {
-    column-count: 2;
-  }
-}
-
-@media (min-width: 1024px) {
-  .masonry-grid {
-    column-count: 2;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 .masonry-item {
   break-inside: avoid;
-  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Masonry mode: 3-col CSS grid, left→right reading order */
+.masonry-3col {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 640px) {
+  .masonry-3col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-3col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Pinterest-style masonry: CSS columns, items flow top-to-bottom */
+.pinterest-grid {
+  column-gap: 1.25rem;
+  column-count: 1;
+}
+@media (min-width: 640px) { .pinterest-grid { column-count: 2; } }
+@media (min-width: 1024px) { .pinterest-grid { column-count: 3; } }
+
+.pinterest-item {
+  break-inside: avoid;
+  margin-bottom: 1.25rem;
+  display: inline-block;
+  width: 100%;
 }
 
 /* Ensure browser-default mark background doesn't interfere with Tailwind utility */
@@ -69,6 +103,11 @@ mark {
   display: none;             /* Chrome, Safari */
 }
 
-
-
-
+/* Toast animation */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.25s ease-out forwards;
+}
