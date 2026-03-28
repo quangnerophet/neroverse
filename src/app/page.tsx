@@ -7,8 +7,10 @@ import { MarkdownContent } from "@/components/MarkdownContent";
 import { PostModal } from "@/components/PostModal";
 import { LikeShare } from "@/components/LikeShare";
 import { WorkspacePanel } from "@/components/WorkspacePanel";
+import { BookmarksPanel } from "@/components/BookmarksPanel";
 import { useAuth } from "@/lib/AuthContext";
 import { useHighlights } from "@/lib/useHighlights";
+import { useBookmarks } from "@/lib/useBookmarks";
 import { Post } from "@/lib/mockData";
 
 // Custom Masonry Component for tight vertical packing + true left-to-right order
@@ -68,6 +70,7 @@ function HomeContent() {
   const { topics, posts, viewMode, sortOrder } = useStore();
   const { tier } = useAuth();
   const { highlights, removeHighlight } = useHighlights();
+  const { bookmarks, toggleBookmark } = useBookmarks();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -75,6 +78,7 @@ function HomeContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [modalPost, setModalPost] = useState<Post | null>(null);
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const [bookmarksOpen, setBookmarksOpen] = useState(false);
 
   const rootTopics = topics.filter((t) => !t.parentId);
   const [selectedRootId, setSelectedRootId] = useState<string | null>(null);
@@ -226,18 +230,44 @@ function HomeContent() {
         onRemove={removeHighlight}
       />
 
+      {/* Bookmarks Panel */}
+      <BookmarksPanel
+        open={bookmarksOpen}
+        onClose={() => setBookmarksOpen(false)}
+        bookmarks={bookmarks}
+        onRemove={toggleBookmark}
+        onPostClick={(post) => {
+          setBookmarksOpen(false);
+          openModal(post);
+        }}
+      />
+
       {/* ── Tier Selector + Workspace Button (dev toolbar) ── */}
-      <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-2">
-        {/* Workspace trigger */}
+      <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
+        {/* Workspace trigger (Highlights) */}
         <button
           onClick={() => setWorkspaceOpen(true)}
-          title="Bộ sưu tập cá nhân"
-          className="relative w-11 h-11 flex items-center justify-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          title="Bộ sưu tập cá nhân (Highlights)"
+          className="relative w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-amber-100 dark:border-amber-900/30 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 group"
         >
-          <span className="text-base">✦</span>
+          <span className="text-xl group-hover:text-amber-500 transition-colors">✦</span>
           {highlights.length > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
               {highlights.length > 9 ? "9+" : highlights.length}
+            </span>
+          )}
+        </button>
+
+        {/* Bookmarks trigger */}
+        <button
+          onClick={() => setBookmarksOpen(true)}
+          title="Bài viết đã lưu (Bookmarks)"
+          className="relative w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-blue-100 dark:border-blue-900/30 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 group"
+        >
+          <span className="text-xl group-hover:text-blue-500 transition-colors opacity-70">🔖</span>
+          {bookmarks.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+              {bookmarks.length > 9 ? "9+" : bookmarks.length}
             </span>
           )}
         </button>

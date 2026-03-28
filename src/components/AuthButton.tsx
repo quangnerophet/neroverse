@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { useStore } from "@/lib/StoreProvider";
 
 export function AuthButton() {
   const { user, tier, displayName, loading, signIn, signOutUser } = useAuth();
+  const { setPricingModalOpen } = useStore();
 
   if (loading) {
     return (
@@ -126,17 +129,26 @@ export function AuthButton() {
           </div>
         </div>
 
-        {/* Tier row */}
-        <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-          <span className="font-sans text-[10px] uppercase tracking-widest text-gray-400 dark:text-slate-500">
-            Gói
-          </span>
-          {tier === "vip" ? (
-            <span className="font-sans text-[11px] font-bold text-purple-600 dark:text-purple-400">👑 VIP</span>
-          ) : tier === "premium" ? (
-            <span className="font-sans text-[11px] font-bold text-amber-600 dark:text-amber-400">🔒 Premium</span>
-          ) : (
-            <span className="font-sans text-[11px] text-gray-400 dark:text-slate-500">✓ Free</span>
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="font-sans text-[10px] uppercase tracking-widest text-gray-400 dark:text-slate-500">
+              Gói
+            </span>
+            {tier === "vip" ? (
+              <span className="font-sans text-[11px] font-bold text-purple-600 dark:text-purple-400">👑 VIP</span>
+            ) : tier === "premium" ? (
+              <span className="font-sans text-[11px] font-bold text-amber-600 dark:text-amber-400">🔒 Premium</span>
+            ) : (
+              <span className="font-sans text-[11px] text-gray-400 dark:text-slate-500">✓ Free</span>
+            )}
+          </div>
+          {tier !== "vip" && (
+            <button
+              onClick={() => setPricingModalOpen(true)}
+              className="w-full text-center py-1.5 mt-1 rounded font-sans text-[10px] uppercase tracking-widest bg-gray-50 dark:bg-slate-800/50 text-[#333] dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              Nâng cấp gói →
+            </button>
           )}
         </div>
 

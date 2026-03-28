@@ -21,17 +21,23 @@ async function saveHighlightToDB(highlight: Highlight): Promise<void> {
 export function useHighlights() {
   const [highlights, setHighlights] = useState<Highlight[]>([]);
 
-  // Load from localStorage on mount
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setHighlights(JSON.parse(raw));
-    } catch { /* ignore */ }
+    const load = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) setHighlights(JSON.parse(raw));
+      } catch { /* ignore */ }
+    };
+    
+    load();
+    window.addEventListener("nero_highlights_changed", load);
+    return () => window.removeEventListener("nero_highlights_changed", load);
   }, []);
 
   const persist = (items: Highlight[]) => {
     setHighlights(items);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    window.dispatchEvent(new Event("nero_highlights_changed"));
   };
 
   const addHighlight = async (text: string, postId: string, postTitle?: string) => {

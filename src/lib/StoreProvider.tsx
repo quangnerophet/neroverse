@@ -42,6 +42,8 @@ type StoreState = {
   updatePost: (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free' | 'premium' | 'vip') => Promise<void>;
   likePost: (id: string) => Promise<void>;
   updateSiteSettings: (settings: SiteSettings) => Promise<void>;
+  isPricingModalOpen: boolean;
+  setPricingModalOpen: (open: boolean) => void;
 };
 
 const StoreContext = createContext<StoreState | undefined>(undefined);
@@ -57,6 +59,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [viewMode, setViewMode] = useState<"cards" | "list" | "masonry">("cards");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "mostliked">("newest");
+  const [isPricingModalOpen, setPricingModalOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Sync Topics from Firestore
@@ -184,7 +187,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       topics, posts, siteSettings, viewMode, sortOrder, setViewMode, setSortOrder,
       addTopic, updateTopic, deleteTopic, 
       addPost, updatePost, likePost,
-      updateSiteSettings 
+      updateSiteSettings,
+      isPricingModalOpen,
+      setPricingModalOpen,
     }}>
       {children}
     </StoreContext.Provider>

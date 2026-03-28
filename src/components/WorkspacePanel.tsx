@@ -32,7 +32,7 @@ export function WorkspacePanel({ open, onClose, highlights, onRemove }: Props) {
       <aside
         className={`
           fixed top-0 right-0 h-full w-full max-w-sm z-50
-          bg-white dark:bg-slate-900
+          bg-[#FAFAFA] dark:bg-slate-900
           border-l border-gray-100 dark:border-slate-700
           shadow-2xl flex flex-col
           transition-transform duration-300 ease-in-out
@@ -59,18 +59,22 @@ export function WorkspacePanel({ open, onClose, highlights, onRemove }: Props) {
         </div>
 
         {/* Highlight list */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {highlights.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-20">
               <span className="text-4xl mb-4 opacity-30">✦</span>
               <p className="font-serif text-sm text-gray-400 dark:text-slate-500 leading-relaxed">
-                Chưa có highlight nào.<br />Bôi đen đoạn văn yêu thích và lưu lại nhé.
+                Chưa có highlight nào.<br />Hãy bôi đen những đoạn văn ấn tượng và lưu lại.
               </p>
             </div>
           ) : (
-            highlights.map((h) => (
-              <HighlightCard key={h.id} highlight={h} onRemove={onRemove} />
-            ))
+            <div className="flex flex-col space-y-4">
+              {highlights.map((h) => (
+                <div key={h.id}>
+                  <HighlightCard highlight={h} onRemove={onRemove} />
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </aside>
@@ -84,34 +88,34 @@ function HighlightCard({ highlight, onRemove }: { highlight: Highlight; onRemove
   });
 
   return (
-    <div className="group relative bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-xl p-4">
+    <div className="group relative bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 shadow-sm hover:shadow-md transition-shadow rounded-2xl p-6">
       {/* Delete button */}
       <button
         onClick={() => onRemove(highlight.id)}
-        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 flex items-center justify-center text-gray-400 hover:text-red-400 text-xs"
+        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 dark:bg-red-900/20 dark:hover:bg-red-900/40"
         aria-label="Xóa"
       >
         ✕
       </button>
 
-      {/* Highlight bar */}
-      <div className="w-5 h-0.5 bg-amber-400 rounded mb-3" />
+      {/* Quote Icon */}
+      <div className="text-3xl font-serif text-amber-200 dark:text-amber-900/50 leading-none mb-1">
+        &ldquo;
+      </div>
 
-      {/* Text */}
-      <p className="font-serif text-sm leading-relaxed text-[#333] dark:text-slate-200 mb-3 pr-4">
-        &ldquo;{highlight.text}&rdquo;
+      {/* Text Highlighted */}
+      <p className="font-serif text-sm leading-relaxed text-[#333] dark:text-slate-200 mb-5">
+        {highlight.text}
       </p>
 
-      {/* Meta */}
-      <div className="flex items-center justify-between gap-2 font-sans">
-        {highlight.postTitle ? (
-          <span className="text-[10px] text-gray-400 dark:text-slate-500 truncate">
-            {highlight.postTitle}
-          </span>
-        ) : (
-          <span className="text-[10px] text-gray-300 dark:text-slate-600 italic">Bài không có tiêu đề</span>
-        )}
-        <span className="text-[10px] text-gray-300 dark:text-slate-600 whitespace-nowrap">{dateStr}</span>
+      {/* Meta container */}
+      <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 dark:border-slate-800">
+        <span className="font-sans text-[11px] font-semibold tracking-wider uppercase text-amber-600 dark:text-amber-500 line-clamp-1">
+          {highlight.postTitle || "Bài Không Có Tiêu Đề"}
+        </span>
+        <span className="font-sans text-[10px] text-gray-400 dark:text-slate-500 uppercase tracking-widest block">
+          ĐÃ LƯU: {dateStr}
+        </span>
       </div>
     </div>
   );

@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { useStore } from "@/lib/StoreProvider";
 import { Post } from "@/lib/mockData";
+import { useBookmarks } from "@/lib/useBookmarks";
+import { useAuth } from "@/lib/AuthContext";
 
 type Props = {
   post: Post;
@@ -10,7 +12,10 @@ type Props = {
 };
 
 export function LikeShare({ post, variant = "card" }: Props) {
-  const { likePost } = useStore();
+  const { likePost, setPricingModalOpen } = useStore();
+  const { toggleBookmark, isBookmarked, isLoaded } = useBookmarks();
+  const { tier, user, signIn } = useAuth();
+  
   const storageKey = `nero_liked_${post.id}`;
   const [liked, setLiked] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -18,6 +23,21 @@ export function LikeShare({ post, variant = "card" }: Props) {
   });
   const [count, setCount] = useState(post.likes ?? 0);
   const [copied, setCopied] = useState(false);
+
+  const bookmarked = isLoaded && isBookmarked(post.id);
+
+  const onBookmarkClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      signIn();
+      return;
+    }
+    if (tier !== "premium" && tier !== "vip") {
+      setPricingModalOpen(true);
+      return;
+    }
+    await toggleBookmark(post.id);
+  };
 
   const handleLike = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,23 +100,48 @@ export function LikeShare({ post, variant = "card" }: Props) {
           </svg>
           <span>{copied ? "Copied!" : "Share"}</span>
         </button>
+        {/* Bookmark */}
+        <button
+          onClick={onBookmarkClick}
+          title={bookmarked ? "Bỏ lưu bài viết" : "Lưu bài viết để đọc sau"}
+          className={`flex items-center gap-1.5 font-sans text-[11px] uppercase font-semibold tracking-wider transition-colors duration-200 ${
+            bookmarked
+              ? "text-blue-500 dark:text-blue-400"
+              : "text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400"
+          }`}
+        >
+          <span className="text-sm">{bookmarked ? "🔖" : "📑"}</span>
+          <span>{bookmarked ? "Đã lưu" : "Lưu"}</span>
+        </button>
       </div>
     );
   }
 
-  // Card variant — minimal, just heart + count
+  // Card variant — minimal, just heart + bookmark
   return (
-    <button
-      onClick={handleLike}
-      title={liked ? "Already liked!" : "Like this post"}
-      className={`flex items-center gap-1 font-sans text-[10px] tracking-wide transition-all duration-200 ${
-        liked
-          ? "text-rose-500 dark:text-rose-400"
-          : "text-gray-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400"
-      }`}
-    >
-      <span>{liked ? "❤️" : "🤍"}</span>
-      <span>{count}</span>
-    </button>
+    <div className="flex items-center gap-3">
+      <button
+        onClick={handleLike}
+        title={liked ? "Already liked!" : "Like this post"}
+        className={`flex items-center gap-1 font-sans text-[10px] tracking-wide transition-all duration-200 ${
+          liked
+            ? "text-rose-500 dark:text-rose-400"
+            : "text-gray-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400"
+        }`}
+      >
+        <span>{liked ? "❤️" : "🤍"}</span>
+        <span>{count}</span>
+      </button>
+
+      <button
+        onClick={onBookmarkClick}
+        title={bookmarked ? "Bỏ lưu bài viết" : "Lưu bài viết"}
+        className={`flex items-center transition-all duration-200 opacity-60 hover:opacity-100 ${
+          bookmarked ? "text-blue-500 dark:text-blue-400 opacity-100 filter drop-shadow-sm" : ""
+        }`}
+      >
+        <span className="text-xs">{bookmarked ? "🔖" : "📑"}</span>
+      </button>
+    </div>
   );
 }

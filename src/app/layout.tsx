@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { AuthProvider } from "@/lib/AuthContext";
 import { AuthButton } from "@/components/AuthButton";
 import { NameInputModal } from "@/components/NameInputModal";
+import { PricingModal } from "@/components/PricingModal";
 import Link from "next/link";
 
 const lora = Lora({
@@ -78,6 +79,7 @@ export default function RootLayout({
 
             <Footer />
             <NameInputModal />
+            <PricingModal />
             </AuthProvider>
           </StoreProvider>
 

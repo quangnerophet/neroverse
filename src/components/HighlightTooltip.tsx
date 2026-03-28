@@ -32,9 +32,11 @@ export function HighlightTooltip({ containerRef, userTier, onSave }: Props) {
       }
 
       const rect = range.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+
       setTooltip({
-        x: rect.left + rect.width / 2 + window.scrollX,
-        y: rect.top + window.scrollY - 48,
+        x: rect.left - containerRect.left + rect.width / 2 + containerRef.current.scrollLeft,
+        y: rect.top - containerRect.top + containerRef.current.scrollTop - 48,
         text: selected,
       });
     };
@@ -62,8 +64,6 @@ export function HighlightTooltip({ containerRef, userTier, onSave }: Props) {
       const range = selection.getRangeAt(0);
       const mark = document.createElement("mark");
       mark.className = "nero-highlight";
-      mark.style.cssText =
-        "background: #fef08a; border-radius: 2px; padding: 0 2px; color: inherit;";
       try { range.surroundContents(mark); } catch { /* skip complex ranges */ }
       selection.removeAllRanges();
     }

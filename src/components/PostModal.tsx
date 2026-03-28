@@ -8,6 +8,7 @@ import { HighlightTooltip } from "@/components/HighlightTooltip";
 import { useAuth } from "@/lib/AuthContext";
 import { canRead } from "@/lib/useUserTier";
 import { useHighlights } from "@/lib/useHighlights";
+import { useStore } from "@/lib/StoreProvider";
 import Link from "next/link";
 
 type Props = {
@@ -19,10 +20,10 @@ type Props = {
 
 export function PostModal({ post, topic, onClose, onTagClick }: Props) {
   const { user, tier, signIn } = useAuth();
+  const { setPricingModalOpen } = useStore();
   const { addHighlight } = useHighlights();
   const contentRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [selectionText, setSelectionText] = useState(""); // for action bar
 
   const isLocked = !canRead(post.tier, tier);
   const canHighlight = user && (tier === "premium" || tier === "vip");
@@ -48,20 +49,6 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Track selection for bottom action bar
-  useEffect(() => {
-    if (!canHighlight) return;
-    const handleSelection = () => {
-      const sel = window.getSelection()?.toString().trim() ?? "";
-      setSelectionText(sel.length >= 5 ? sel : "");
-    };
-    document.addEventListener("mouseup", handleSelection);
-    document.addEventListener("keyup", handleSelection);
-    return () => {
-      document.removeEventListener("mouseup", handleSelection);
-      document.removeEventListener("keyup", handleSelection);
-    };
-  }, [canHighlight]);
 
   const handleSaveHighlight = async (text: string) => {
     await addHighlight(text, post.id, post.title || post.excerpt.slice(0, 50));
@@ -71,11 +58,9 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
       const range = selection.getRangeAt(0);
       const mark = document.createElement("mark");
       mark.className = "nero-highlight";
-      mark.style.cssText = "background:#fef08a;border-radius:2px;padding:0 2px;color:inherit;";
       try { range.surroundContents(mark); } catch { /* skip complex */ }
       selection.removeAllRanges();
     }
-    setSelectionText("");
     // Toast
     setToast("✦ Đã lưu vào Bộ Sưu Tập");
     setTimeout(() => setToast(null), 2500);
@@ -198,7 +183,10 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
                     ) : (
                       /* Logged in but wrong tier */
                       <button
-                        onClick={onClose}
+                        onClick={() => {
+                          onClose();
+                          setPricingModalOpen(true);
+                        }}
                         className={`inline-flex items-center gap-2 px-6 py-2.5 text-xs font-sans font-semibold tracking-wide uppercase rounded-full transition-all duration-200
                           ${post.tier === "vip" ? "bg-purple-600 hover:bg-purple-700 text-white" : "bg-amber-500 hover:bg-amber-600 text-white"}`}
                       >
@@ -243,31 +231,6 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
             </Link>
           </div>
         </div>
-
-        {/* ── HIGHLIGHT ACTION BAR ── slides up when text is selected */}
-        {canHighlight && (
-          <div className={`
-            border-t border-amber-100 dark:border-amber-900/30
-            transition-all duration-300 ease-out overflow-hidden
-            ${selectionText
-              ? "max-h-20 opacity-100 bg-amber-50 dark:bg-amber-900/10"
-              : "max-h-0 opacity-0 pointer-events-none"}
-          `}>
-            <div className="flex items-center justify-between px-8 py-3">
-              <p className="font-sans text-[11px] text-amber-700 dark:text-amber-400 truncate max-w-[60%]">
-                <span className="font-semibold">✦</span>{" "}
-                &ldquo;{selectionText.slice(0, 60)}{selectionText.length > 60 ? "…" : ""}&rdquo;
-              </p>
-              <button
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => handleSaveHighlight(selectionText)}
-                className="flex-shrink-0 ml-4 font-sans text-[11px] font-semibold uppercase tracking-wide px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-colors"
-              >
-                Lưu lại
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* === TOAST NOTIFICATION === */}
         {toast && (
