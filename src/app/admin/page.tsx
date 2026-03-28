@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useStore } from "@/lib/StoreProvider";
 import { MarkdownContent } from "@/components/MarkdownContent";
-import { SiteSettings, SocialLink } from "@/lib/StoreProvider";
+import { SocialLink } from "@/lib/StoreProvider";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, updateDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc, setDoc } from "firebase/firestore";
+import type { Post } from "@/lib/mockData";
 
 const ADMIN_PASSWORD = "admin123";
 
@@ -129,7 +130,7 @@ export default function AdminPage() {
     }
   };
 
-  const startEditing = (post: any) => {
+  const startEditing = (post: Post) => {
     setEditingPostId(post.id);
     setSelectedTopicId(post.topicId);
     setPostTitle(post.title || "");
@@ -155,11 +156,6 @@ export default function AdminPage() {
     setTagsRaw("");
   };
 
-  const updateTagInput = (index: number, value: string) => {
-    const next = [...tagsInput];
-    next[index] = value;
-    setTagsInput(next);
-  };
 
   const parseTagsRaw = (value: string) => {
     setTagsRaw(value);

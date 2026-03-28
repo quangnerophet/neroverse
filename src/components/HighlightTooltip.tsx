@@ -18,7 +18,7 @@ export function HighlightTooltip({ containerRef, userTier, onSave }: Props) {
   useEffect(() => {
     if (!canHighlight) return;
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleMouseUp = () => {
       const selection = window.getSelection();
       const selected = selection?.toString().trim();
       if (!selected || selected.length < 5) { setTooltip(null); return; }

@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import type { Bookmark } from "@/lib/useBookmarks";
 import { useStore } from "@/lib/StoreProvider";
-import Link from "next/link";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import type { Post } from "@/lib/mockData";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   bookmarks: Bookmark[];
   onRemove: (postId: string) => void;
-  onPostClick: (post: any) => void;
+  onPostClick: (post: Post) => void;
 };
 
 export function BookmarksPanel({ open, onClose, bookmarks, onRemove, onPostClick }: Props) {
@@ -100,7 +100,7 @@ export function BookmarksPanel({ open, onClose, bookmarks, onRemove, onPostClick
   );
 }
 
-function BookmarkCard({ bookmark, post, topicName, onRemove, onClick }: { bookmark: Bookmark; post: any; topicName?: string; onRemove: (id: string) => void; onClick: () => void }) {
+function BookmarkCard({ bookmark, post, topicName, onRemove, onClick }: { bookmark: Bookmark; post: Post; topicName?: string; onRemove: (id: string) => void; onClick: () => void }) {
   const dateStr = new Date(bookmark.savedAt).toLocaleDateString("vi-VN", {
     day: "2-digit", month: "2-digit", year: "numeric",
   });

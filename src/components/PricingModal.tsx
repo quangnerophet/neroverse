@@ -15,21 +15,7 @@ export function PricingModal() {
     (link) => link.label.toLowerCase().includes("instagram") || link.label.toLowerCase().includes("ig")
   );
   const igLink = igLinkObj?.url || "https://instagram.com/quangnerophet";
-  
-  // Custom logic to handle Upgrade clicks directly from the pricing modal buttons 
-  const handleUpgradeClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (!user) {
-      // If not logged in, force them to log in first
-      signIn();
-      return;
-    }
-    // If logged in, show the native Window alert acting as the 'Upgrade Instructions Popup'
-    // This maintains minimalist UX without cluttering the screen with too many modals.
-    // However, the instructions were specific: "mở ra một Popup/Alert (được thiết kế đẹp mắt, đồng bộ UI web)"
-    // So let's use a stylish in-DOM popup instead of a native `window.alert()`.
-  };
-
+    // Note: To handle upgrade logic we now pass igLink to the UpgradeButton below.
   return (
     <>
       <div 
@@ -139,7 +125,8 @@ export function PricingModal() {
   );
 }
 
-function UpgradeButton({ igLink, ctaText, isPro, user, signIn }: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function UpgradeButton({ igLink, ctaText, isPro, user, signIn }: { igLink: string; ctaText: string; isPro: boolean; user: any; signIn: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
 
   if (isOpen) {

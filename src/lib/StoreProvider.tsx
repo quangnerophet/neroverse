@@ -13,7 +13,6 @@ import {
   query, 
   orderBy,
   setDoc,
-  getDoc,
   increment,
 } from "firebase/firestore";
 

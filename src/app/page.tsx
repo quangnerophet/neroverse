@@ -7,14 +7,12 @@ import { MarkdownContent } from "@/components/MarkdownContent";
 import { PostModal } from "@/components/PostModal";
 import { LikeShare } from "@/components/LikeShare";
 import { WorkspacePanel } from "@/components/WorkspacePanel";
-import { BookmarksPanel } from "@/components/BookmarksPanel";
-import { useAuth } from "@/lib/AuthContext";
 import { useHighlights } from "@/lib/useHighlights";
+import { BookmarksPanel } from "@/components/BookmarksPanel";
 import { useBookmarks } from "@/lib/useBookmarks";
 import { Post } from "@/lib/mockData";
 
-// Custom Masonry Component for tight vertical packing + true left-to-right order
-function MasonryLayout({ items, openModal, topics }: { items: Post[], openModal: (p: Post) => void, topics: any[] }) {
+function MasonryLayout({ items, openModal, topics }: { items: Post[], openModal: (p: Post) => void, topics: { id: string, name: string, parentId?: string | null }[] }) {
   const [cols, setCols] = useState(3);
 
   useEffect(() => {
@@ -68,7 +66,7 @@ function MasonryLayout({ items, openModal, topics }: { items: Post[], openModal:
 
 function HomeContent() {
   const { topics, posts, viewMode, sortOrder } = useStore();
-  const { tier } = useAuth();
+
   const { highlights, removeHighlight } = useHighlights();
   const { bookmarks, toggleBookmark } = useBookmarks();
   const router = useRouter();
@@ -236,7 +234,7 @@ function HomeContent() {
         onClose={() => setBookmarksOpen(false)}
         bookmarks={bookmarks}
         onRemove={toggleBookmark}
-        onPostClick={(post) => {
+        onPostClick={(post: Post) => {
           setBookmarksOpen(false);
           openModal(post);
         }}

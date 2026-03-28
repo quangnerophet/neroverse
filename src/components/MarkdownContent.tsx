@@ -14,7 +14,7 @@ type MarkdownContentProps = {
 // 1. Handle ==highlight== tags
 // 2. Preserve single newlines by converting them to Markdown hard breaks (two spaces + \n)
 function preProcess(text: string): string {
-  let processed = text.replace(/==(.*?)==/g, "<mark>$1</mark>");
+  const processed = text.replace(/==(.*?)==/g, "<mark>$1</mark>");
   // Convert single \n to "  \n" to force a line break in standard Markdown rendering
   return processed.split('\n').join('  \n');
 }
