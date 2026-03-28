@@ -1,11 +1,29 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useStore } from "@/lib/StoreProvider";
 
 export function AuthButton() {
   const { user, tier, displayName, loading, signIn, signOutUser } = useAuth();
   const { setPricingModalOpen } = useStore();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent | TouchEvent | Event) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -45,9 +63,12 @@ export function AuthButton() {
 
   /* ── LOGGED IN ─────────────────────────────────────────── */
   return (
-    <div className="relative group">
+    <div className="relative" ref={menuRef}>
       {/* Trigger button */}
-      <button className="flex items-center gap-2.5 group/btn" aria-label="Account menu">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2.5 group/btn" aria-label="Account menu"
+      >
         {/* Name + tier badge block */}
         <div className="relative">
           {/* Tier badge — floats top-right of name */}
@@ -82,7 +103,7 @@ export function AuthButton() {
 
         {/* Chevron */}
         <svg
-          className="w-3 h-3 text-gray-400 dark:text-slate-600 transition-transform duration-200 group-hover:rotate-180 flex-shrink-0"
+          className={`w-3 h-3 text-gray-400 dark:text-slate-600 transition-transform duration-200 flex-shrink-0 ${isOpen ? "rotate-180" : ""}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -91,16 +112,14 @@ export function AuthButton() {
 
       {/* Dropdown */}
       <div
-        className="
+        className={`
           absolute right-0 top-full mt-3 w-52
           bg-white dark:bg-slate-900
           border border-gray-100 dark:border-slate-700
-          rounded-2xl shadow-xl
-          opacity-0 invisible pointer-events-none
-          group-hover:opacity-100 group-hover:visible group-hover:pointer-events-auto
-          transition-all duration-200 translate-y-1 group-hover:translate-y-0
-          z-50 overflow-hidden
-        "
+          rounded-2xl shadow-xl z-50
+          transition-all duration-200 origin-top-right
+          ${isOpen ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible"}
+        `}
       >
         {/* User info row */}
         <div className="px-4 py-3.5 border-b border-gray-100 dark:border-slate-800">

@@ -41,17 +41,23 @@ export function HighlightTooltip({ containerRef, userTier, onSave }: Props) {
       });
     };
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handleMouseDown = (e: MouseEvent | TouchEvent | Event) => {
       if (tooltipRef.current && !tooltipRef.current.contains(e.target as Node)) {
         setTooltip(null);
       }
     };
 
     document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("touchend", handleMouseUp);
+    document.addEventListener("selectionchange", handleMouseUp);
+    document.addEventListener("mousedown", handleMouseDown as EventListener);
+    document.addEventListener("touchstart", handleMouseDown as EventListener);
     return () => {
       document.removeEventListener("mouseup", handleMouseUp);
-      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("touchend", handleMouseUp);
+      document.removeEventListener("selectionchange", handleMouseUp);
+      document.removeEventListener("mousedown", handleMouseDown as EventListener);
+      document.removeEventListener("touchstart", handleMouseDown as EventListener);
     };
   }, [canHighlight, containerRef]);
 
