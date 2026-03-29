@@ -33,6 +33,7 @@ export default function AdminPage() {
   const [postTier, setPostTier] = useState<'free' | 'premium' | 'vip'>('free');
   const [tagsInput, setTagsInput] = useState<string[]>([]);
   const [tagsRaw, setTagsRaw] = useState("");
+  const [postImageUrl, setPostImageUrl] = useState("");
 
   // ─── Site Settings State ─────────────────────────────────────────────────
   const [footerLinks, setFooterLinks] = useState<SocialLink[]>([]);
@@ -113,10 +114,10 @@ export default function AdminPage() {
       const submittedDate = new Date(postDate).toISOString();
       
       if (editingPostId) {
-        await updatePost(editingPostId, selectedTopicId, newPostExcerpt.trim(), newPostFullContent.trim() || undefined, filteredTags, submittedDate, postTitle.trim() || undefined, postTier);
+        await updatePost(editingPostId, selectedTopicId, newPostExcerpt.trim(), newPostFullContent.trim() || undefined, filteredTags, submittedDate, postTitle.trim() || undefined, postTier, postImageUrl.trim() || undefined);
         setEditingPostId(null);
       } else {
-        await addPost(selectedTopicId, newPostExcerpt.trim(), newPostFullContent.trim() || undefined, filteredTags, submittedDate, postTitle.trim() || undefined, postTier);
+        await addPost(selectedTopicId, newPostExcerpt.trim(), newPostFullContent.trim() || undefined, filteredTags, submittedDate, postTitle.trim() || undefined, postTier, postImageUrl.trim() || undefined);
       }
 
       setPostTitle("");
@@ -127,6 +128,7 @@ export default function AdminPage() {
       setPostTier('free');
       setTagsInput([]);
       setTagsRaw("");
+      setPostImageUrl("");
     }
   };
 
@@ -138,6 +140,7 @@ export default function AdminPage() {
     setNewPostFullContent(post.fullContent || "");
     setPostDate(new Date(post.createdAt).toISOString().split('T')[0]);
     setPostTier(post.tier || 'free');
+    setPostImageUrl(post.imageUrl || "");
     const existingTags = post.tags || [];
     setTagsInput(existingTags);
     setTagsRaw(existingTags.map((t: string) => `#${t}`).join(" "));
@@ -154,6 +157,7 @@ export default function AdminPage() {
     setPostTier('free');
     setTagsInput([]);
     setTagsRaw("");
+    setPostImageUrl("");
   };
 
 
@@ -274,6 +278,10 @@ export default function AdminPage() {
           <input type="text" value={postTitle} onChange={(e) => setPostTitle(e.target.value)}
             placeholder="Post Title (Optional)..."
             className="w-full bg-transparent border-b border-gray-200 dark:border-slate-800 py-3 text-3xl font-bold text-[#333333] dark:text-slate-100 focus:outline-none focus:border-[#333333] dark:focus:border-slate-500 transition-colors font-serif placeholder:text-gray-200 dark:placeholder:text-slate-700 rounded-lg px-2" />
+
+          <input type="text" value={postImageUrl} onChange={(e) => setPostImageUrl(e.target.value)}
+            placeholder="Image URL (Unsplash Link) For Pro/VIP Readers..."
+            className="w-full bg-transparent border-b border-gray-200 dark:border-slate-800 py-3 text-sm text-[#333333] dark:text-slate-100 focus:outline-none focus:border-[#333333] dark:focus:border-slate-500 transition-colors font-sans placeholder:text-gray-300 dark:placeholder:text-slate-600 rounded-lg px-2" />
 
           <input type="text" value={newPostExcerpt} onChange={(e) => setNewPostExcerpt(e.target.value)}
             placeholder="Short Excerpt..." required

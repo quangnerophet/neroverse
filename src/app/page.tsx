@@ -217,6 +217,7 @@ function HomeContent() {
           topic={topics.find(t => t.id === modalPost.topicId)}
           onClose={closeModal}
           onTagClick={selectTag}
+          onPostClick={openModal}
         />
       )}
 

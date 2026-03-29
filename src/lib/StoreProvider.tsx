@@ -37,8 +37,8 @@ type StoreState = {
   addTopic: (name: string, parentId?: string) => Promise<void>;
   updateTopic: (id: string, name: string, parentId?: string) => Promise<void>;
   deleteTopic: (id: string) => Promise<void>;
-  addPost: (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free' | 'premium' | 'vip') => Promise<void>;
-  updatePost: (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free' | 'premium' | 'vip') => Promise<void>;
+  addPost: (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free'|'premium'|'vip', imageUrl?: string) => Promise<void>;
+  updatePost: (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier?: 'free'|'premium'|'vip', imageUrl?: string) => Promise<void>;
   likePost: (id: string) => Promise<void>;
   updateSiteSettings: (settings: SiteSettings) => Promise<void>;
   isPricingModalOpen: boolean;
@@ -144,7 +144,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await deleteDoc(doc(db, "topics", id));
   };
 
-  const addPost = async (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free') => {
+  const addPost = async (topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free', imageUrl?: string) => {
     const newPost = {
       topicId,
       title: title || "",
@@ -154,11 +154,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createdAt: createdAt || new Date().toISOString(),
       likes: Math.floor(Math.random() * 51) + 50,
       tier,
+      imageUrl: imageUrl || "",
     };
     await addDoc(collection(db, "posts"), newPost);
   };
 
-  const updatePost = async (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free') => {
+  const updatePost = async (id: string, topicId: string, excerpt: string, fullContent?: string, tags?: string[], createdAt?: string, title?: string, tier: 'free' | 'premium' | 'vip' = 'free', imageUrl?: string) => {
     const postRef = doc(db, "posts", id);
     await updateDoc(postRef, {
       topicId,
@@ -168,6 +169,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       tags: tags && tags.length > 0 ? tags : [],
       createdAt: createdAt || new Date().toISOString(),
       tier,
+      imageUrl: imageUrl || "",
     });
   };
 

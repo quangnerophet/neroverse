@@ -10,17 +10,18 @@ import { canRead } from "@/lib/useUserTier";
 import { useHighlights } from "@/lib/useHighlights";
 import { useStore } from "@/lib/StoreProvider";
 import Link from "next/link";
+import { CommentsSection } from "@/components/CommentsSection";
 
 type Props = {
   post: Post;
   topic: Topic | undefined;
   onClose: () => void;
   onTagClick?: (tag: string) => void;
+  onPostClick?: (post: Post) => void;
 };
-
-export function PostModal({ post, topic, onClose, onTagClick }: Props) {
+export function PostModal({ post, topic, onClose, onTagClick, onPostClick }: Props) {
   const { user, tier, signIn } = useAuth();
-  const { setPricingModalOpen } = useStore();
+  const { setPricingModalOpen, posts } = useStore();
   const { addHighlight } = useHighlights();
   const contentRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -134,6 +135,13 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
             </h2>
           )}
 
+          {/* Featured Image (PRO/VIP only) */}
+          {canHighlight && post.imageUrl && (
+            <div className="mb-6 rounded-2xl overflow-hidden shadow-sm pt-2">
+              <img src={post.imageUrl} alt={post.title || "Image"} className="w-full h-auto max-h-[400px] object-cover hover:scale-105 transition-transform duration-700" />
+            </div>
+          )}
+
           {/* Excerpt — always visible */}
           <div className={`font-serif leading-[1.85] mb-6 ${
             post.title ? "text-base text-gray-500 dark:text-slate-400" : "text-lg text-[#333333] dark:text-slate-200"
@@ -230,6 +238,14 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
               Permalink →
             </Link>
           </div>
+
+          <CommentsSection />
+
+          <RelatedPosts 
+            currentPost={post} 
+            allPosts={posts} 
+            onPostClick={onPostClick} 
+          />
         </div>
 
         {/* === TOAST NOTIFICATION === */}
@@ -241,6 +257,57 @@ export function PostModal({ post, topic, onClose, onTagClick }: Props) {
           </div>
         )}
       </article>
+    </div>
+  );
+}
+
+function RelatedPosts({ currentPost, allPosts, onPostClick }: { currentPost: Post, allPosts: Post[], onPostClick?: (p: Post) => void }) {
+  // Find up to 3 posts in the same topic, excluding the current one
+  const related = allPosts
+    .filter(p => p.topicId === currentPost.topicId && p.id !== currentPost.id)
+    .slice(0, 3);
+
+  if (related.length === 0) return null;
+
+  return (
+    <div className="mt-12 pt-10 border-t border-gray-100 dark:border-slate-800">
+      <h3 className="font-serif text-2xl font-bold text-[#222] dark:text-slate-100 mb-6">
+        Gợi ý bài đọc
+      </h3>
+      <div className="flex flex-col gap-6">
+        {related.map(p => {
+          const dateStr = new Date(p.createdAt).toLocaleDateString("vi-VN", {
+            day: "2-digit", month: "2-digit", year: "numeric",
+          });
+          return (
+            <div 
+              key={p.id} 
+              onClick={() => onPostClick?.(p)}
+              className="group cursor-pointer border-b border-gray-100 dark:border-slate-800 pb-6 last:border-0 last:pb-0"
+            >
+              {p.title && (
+                <h4 className="font-serif text-lg font-bold text-[#222] dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
+                  {p.title}
+                </h4>
+              )}
+              <div className={`font-serif leading-relaxed line-clamp-2 ${p.title ? "text-sm text-gray-500 dark:text-slate-400" : "text-base text-[#333] dark:text-slate-200"} mb-3`}>
+                <MarkdownContent content={p.excerpt} />
+              </div>
+              <div className="flex items-center gap-3 font-sans text-[11px] text-gray-400 tracking-wide uppercase">
+                <span>{dateStr}</span>
+                {p.tier && p.tier !== 'free' && (
+                  <>
+                    <span>•</span>
+                    <span className={p.tier === 'vip' ? "text-purple-500" : "text-amber-500"}>
+                      {p.tier === 'vip' ? '👑 VIP' : '🔒 PREMIUM'}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
