@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 type MarkdownContentProps = {
   content: string;
   className?: string;
+  hideImages?: boolean;
 };
 
 // Pre-process content: 
@@ -41,14 +42,21 @@ const components: Components = {
   ),
 };
 
-export function MarkdownContent({ content, className = "" }: MarkdownContentProps) {
+export function MarkdownContent({ content, className = "", hideImages = false }: MarkdownContentProps) {
   const processed = preProcess(content);
+
+  const mergedComponents = {
+    ...components,
+    img: hideImages ? () => null : ({ src, alt }: { src?: string; alt?: string }) => (
+      <img src={src} alt={alt} className="w-full h-auto rounded-xl my-6 object-cover shadow-sm" />
+    )
+  };
 
   return (
     <div className={className}>
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
-        components={components}
+        components={mergedComponents as any}
       >
         {processed}
       </ReactMarkdown>

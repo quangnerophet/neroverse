@@ -28,6 +28,7 @@ export function PostModal({ post, topic, onClose, onTagClick, onPostClick }: Pro
 
   const isLocked = !canRead(post.tier, tier);
   const canHighlight = user && (tier === "premium" || tier === "vip");
+  const canViewImages = user && (tier === "premium" || tier === "vip");
 
   const dateStr = new Date(post.createdAt).toLocaleDateString("en-US", {
     year: "numeric", month: "long", day: "numeric",
@@ -135,18 +136,10 @@ export function PostModal({ post, topic, onClose, onTagClick, onPostClick }: Pro
             </h2>
           )}
 
-          {/* Featured Image (PRO/VIP only) */}
-          {canHighlight && post.imageUrl && (
-            <div className="mb-6 rounded-2xl overflow-hidden shadow-sm pt-2">
-              <img src={post.imageUrl} alt={post.title || "Image"} className="w-full h-auto max-h-[400px] object-cover hover:scale-105 transition-transform duration-700" />
-            </div>
-          )}
-
-          {/* Excerpt — always visible */}
           <div className={`font-serif leading-[1.85] mb-6 ${
             post.title ? "text-base text-gray-500 dark:text-slate-400" : "text-lg text-[#333333] dark:text-slate-200"
           }`}>
-            <MarkdownContent content={post.excerpt} />
+            <MarkdownContent content={post.excerpt} hideImages={!canViewImages} />
           </div>
 
           {/* Full content — gated */}
@@ -158,7 +151,7 @@ export function PostModal({ post, topic, onClose, onTagClick, onPostClick }: Pro
                 /* ── LOCKED VIEW ── */
                 <div className="relative">
                   <div className="font-serif text-base leading-[1.9] text-[#3a3a3a] dark:text-slate-300 space-y-5 line-clamp-3 blur-[3px] select-none pointer-events-none">
-                    <MarkdownContent content={post.fullContent} />
+                    <MarkdownContent content={post.fullContent} hideImages={true} />
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/70 to-white dark:via-slate-900/70 dark:to-slate-900" />
                   <div className="relative mt-4 flex flex-col items-center text-center py-6 gap-4">
@@ -206,7 +199,7 @@ export function PostModal({ post, topic, onClose, onTagClick, onPostClick }: Pro
               ) : (
                 /* ── UNLOCKED VIEW ── */
                 <div className="font-serif text-base leading-[1.9] text-[#3a3a3a] dark:text-slate-300 space-y-5 mb-6">
-                  <MarkdownContent content={post.fullContent} />
+                  <MarkdownContent content={post.fullContent} hideImages={!canViewImages} />
                 </div>
               )}
             </>
